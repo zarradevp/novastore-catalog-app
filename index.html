@@ -1,0 +1,367 @@
+<!doctype html>
+<html lang="it" class="is-loading">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="NovaStore - Catalogo prodotti" data-i18n-content="meta.description" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg?v=2" />
+    <title data-i18n="meta.title">NovaStore | Catalogo</title>
+    <!-- Inline so it applies before the bundled CSS: no transition may run while the first styles load -->
+    <style>
+      html.is-loading *,
+      html.is-loading *::before,
+      html.is-loading *::after {
+        transition: none;
+      }
+    </style>
+    <!-- Runs before first paint to avoid a flash of the wrong theme; keep in sync with src/theme.js and src/i18n.js -->
+    <script>
+      (() => {
+        const prefersDarkTheme = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        let storedTheme = null;
+        let storedLanguage = null;
+
+        try {
+          storedTheme = localStorage.getItem('novastore_theme');
+          storedLanguage = localStorage.getItem('novastore_lang');
+        } catch {
+          storedTheme = null;
+        }
+
+        const isDarkTheme = storedTheme === 'dark' || (storedTheme !== 'light' && prefersDarkTheme);
+        document.documentElement.classList.toggle('dark', isDarkTheme);
+        document.documentElement.lang = storedLanguage === 'en' ? 'en' : 'it';
+      })();
+    </script>
+  </head>
+
+  <body class="min-h-screen">
+    <header class="header sticky top-0 z-40 border-b border-slate-200 bg-white/80 backdrop-blur transition-colors duration-300 dark:border-slate-800 dark:bg-slate-900/80">
+      <nav class="header__nav mx-auto flex max-w-7xl flex-wrap items-center gap-4 px-4 py-3 sm:px-6 lg:flex-nowrap lg:px-8" aria-label="Navigazione principale" data-i18n-aria-label="nav.label">
+        <a href="/" class="header__brand flex items-center gap-2 text-2xl font-extrabold tracking-tight text-slate-900 dark:text-slate-100">
+          <svg class="header__logo h-8 w-8 shrink-0 drop-shadow-sm" width="32" height="32" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+            <defs>
+              <linearGradient id="header-logo-gradient" x1="6" y1="4" x2="26" y2="29" gradientUnits="userSpaceOnUse">
+                <stop offset="0" style="stop-color: rgb(var(--color-brand-bright))" />
+                <stop offset="0.55" style="stop-color: rgb(var(--color-brand))" />
+                <stop offset="1" style="stop-color: rgb(var(--color-brand-dark))" />
+              </linearGradient>
+            </defs>
+            <path d="M11.5 11V9a4.5 4.5 0 0 1 9 0v2" stroke="url(#header-logo-gradient)" stroke-width="2.6" stroke-linecap="round" />
+            <path d="M6.2 10.5h19.6l-1.5 15a3.2 3.2 0 0 1-3.2 2.9H10.9a3.2 3.2 0 0 1-3.2-2.9l-1.5-15z" fill="url(#header-logo-gradient)" />
+            <path d="M16 14.8l1.35 3.35 3.35 1.35-3.35 1.35L16 24.2l-1.35-3.35-3.35-1.35 3.35-1.35L16 14.8z" fill="#fff" />
+          </svg>
+          <span class="leading-none">Nova<span class="text-brand dark:text-brand-bright">Store</span></span>
+        </a>
+
+        <form id="search-form" class="header__search order-last w-full lg:order-none lg:mx-auto lg:max-w-xl" role="search">
+          <label for="search-input" class="sr-only" data-i18n="nav.searchLabel">Cerca prodotti</label>
+          <div class="relative">
+            <svg class="pointer-events-none absolute left-3 top-1/2 h-5 w-5 shrink-0 -translate-y-1/2 text-slate-400" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <circle cx="11" cy="11" r="7" />
+              <path d="m20 20-3.5-3.5" stroke-linecap="round" />
+            </svg>
+            <input
+              id="search-input"
+              type="search"
+              placeholder="Cerca prodotti, marchi e categorie..."
+              data-i18n-placeholder="nav.searchPlaceholder"
+              class="w-full rounded-full border border-slate-200 bg-slate-100 py-2.5 pl-10 pr-4 text-sm transition placeholder:text-slate-400 focus:border-brand focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand/30 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:bg-slate-900"
+            />
+          </div>
+        </form>
+
+        <div class="header__actions ml-auto flex items-center gap-1 lg:ml-0">
+          <button
+            id="language-toggle"
+            type="button"
+            class="header__language-toggle flex h-10 items-center gap-0.5 rounded-full px-1.5 text-xs font-bold tracking-wide text-slate-500 transition hover:bg-brand-light dark:text-slate-400 dark:hover:bg-slate-800"
+            aria-label="Cambia lingua: passa all'inglese"
+          >
+            <span class="header__language-option rounded-full px-2 py-1 transition-colors data-[active=true]:bg-brand data-[active=true]:text-white" data-language-option="it" data-active="true">IT</span>
+            <span class="header__language-option rounded-full px-2 py-1 transition-colors data-[active=true]:bg-brand data-[active=true]:text-white" data-language-option="en" data-active="false">EN</span>
+          </button>
+
+          <button
+            id="theme-toggle"
+            type="button"
+            class="header__theme-toggle relative flex h-10 w-10 items-center justify-center overflow-hidden rounded-full text-slate-700 transition hover:bg-brand-light hover:text-brand dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-amber-300"
+            aria-label="Attiva tema scuro"
+          >
+            <svg class="absolute h-6 w-6 shrink-0 rotate-0 scale-100 transition-all duration-500 ease-out dark:-rotate-90 dark:scale-0" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+            <svg class="absolute h-6 w-6 shrink-0 rotate-90 scale-0 transition-all duration-500 ease-out dark:rotate-0 dark:scale-100" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <circle cx="12" cy="12" r="4" />
+              <path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" stroke-linecap="round" />
+            </svg>
+          </button>
+
+          <button
+            id="cart-button"
+            type="button"
+            class="header__cart relative rounded-full p-2 text-slate-700 transition hover:bg-brand-light hover:text-brand dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-brand-bright"
+            aria-label="Carrello, 0 articoli"
+            aria-controls="cart-drawer"
+            aria-expanded="false"
+          >
+            <svg class="h-6 w-6 shrink-0" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <path d="M3 3h2l2.4 12.2a2 2 0 0 0 2 1.6h8.2a2 2 0 0 0 2-1.5L21 8H6" stroke-linecap="round" stroke-linejoin="round" />
+              <circle cx="10" cy="20.5" r="1.3" />
+              <circle cx="18" cy="20.5" r="1.3" />
+            </svg>
+            <span id="cart-count" class="header__cart-badge absolute -right-0.5 -top-0.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-brand px-1 text-xs font-bold text-white">0</span>
+          </button>
+        </div>
+      </nav>
+    </header>
+
+    <main class="catalog mx-auto grid max-w-7xl gap-6 px-4 py-6 sm:px-6 md:grid-cols-[220px_1fr] lg:grid-cols-[260px_1fr] lg:gap-8 lg:px-8">
+      <div
+        id="filter-drawer"
+        class="filter-drawer group pointer-events-none fixed inset-0 z-50 data-[state=open]:pointer-events-auto md:pointer-events-auto md:sticky md:top-24 md:z-auto md:h-fit"
+        data-state="closed"
+        hidden
+      >
+        <div class="filter-drawer__backdrop absolute inset-0 bg-slate-900/50 opacity-0 backdrop-blur-sm transition-opacity duration-300 group-data-[state=open]:opacity-100 md:hidden dark:bg-black/60" data-overlay-close></div>
+
+        <div
+          class="filter-panel absolute inset-y-0 left-0 flex w-[85%] max-w-sm -translate-x-full flex-col bg-white shadow-2xl transition-transform duration-300 ease-out group-data-[state=open]:translate-x-0 md:static md:w-auto md:max-w-none md:translate-x-0 md:rounded-2xl md:border md:border-slate-200 md:p-5 md:shadow-sm md:transition-colors dark:bg-slate-900 dark:ring-1 dark:ring-slate-800 md:dark:border-slate-800 md:dark:shadow-none md:dark:ring-0"
+          role="complementary"
+          aria-labelledby="filter-panel-title"
+        >
+          <header class="filter-panel__header flex items-center justify-between gap-2 border-b border-slate-200 px-5 py-4 md:mb-5 md:border-0 md:p-0 dark:border-slate-800">
+            <h2 id="filter-panel-title" class="text-lg font-bold text-slate-900 dark:text-slate-100" data-i18n="filters.title">Filtri</h2>
+            <div class="flex items-center gap-1">
+              <button
+                id="reset-filters-button"
+                type="button"
+                class="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium text-brand transition hover:bg-brand-light focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/40 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent dark:text-brand-bright dark:hover:bg-brand/20"
+                data-action="reset-filters"
+                disabled
+              >
+                <svg class="h-4 w-4 shrink-0" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                  <path d="M4 4v6h6M20 20v-6h-6M20 9a8 8 0 0 0-14.3-3.3L4 10m16 4-1.7 4.3A8 8 0 0 1 4 15" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+                <span data-i18n="filters.reset">Azzera filtri</span>
+              </button>
+              <button
+                id="filter-close-button"
+                type="button"
+                class="rounded-full p-2 text-slate-500 transition hover:bg-slate-100 hover:text-slate-900 md:hidden dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100"
+                aria-label="Chiudi filtri"
+                data-i18n-aria-label="filters.close"
+                data-overlay-close
+              >
+                <svg class="h-5 w-5 shrink-0" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                  <path d="M6 6l12 12M18 6 6 18" stroke-linecap="round" />
+                </svg>
+              </button>
+            </div>
+          </header>
+
+          <div class="filter-panel__body flex-1 overflow-y-auto px-5 py-5 md:overflow-visible md:p-0">
+            <fieldset class="filter-panel__group mb-6">
+              <legend class="filter-panel__title" data-i18n="filters.categories">Categorie</legend>
+              <ul id="category-list" class="space-y-2 text-sm text-slate-700 dark:text-slate-300">
+                <li class="text-slate-400 dark:text-slate-500" data-i18n="filters.loadingCategories">Caricamento categorie…</li>
+              </ul>
+            </fieldset>
+
+            <fieldset class="filter-panel__group">
+              <legend class="filter-panel__title" data-i18n="filters.maxPrice">Prezzo massimo</legend>
+              <label for="price-range" class="sr-only" data-i18n="filters.maxPrice">Prezzo massimo</label>
+              <input id="price-range" type="range" min="0" max="0" step="1" value="0" class="w-full accent-brand disabled:opacity-50" disabled />
+              <div class="mt-2 flex justify-between text-xs text-slate-500 dark:text-slate-400">
+                <span id="price-min-label">—</span>
+                <output id="price-value" for="price-range" class="font-semibold text-brand dark:text-brand-bright">—</output>
+                <span id="price-max-label">—</span>
+              </div>
+            </fieldset>
+          </div>
+
+          <footer class="filter-panel__footer border-t border-slate-200 bg-white px-5 py-4 md:hidden dark:border-slate-800 dark:bg-slate-900">
+            <button
+              id="show-results-button"
+              type="button"
+              class="w-full rounded-full bg-brand py-3 font-semibold text-white transition hover:bg-brand-dark focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/40"
+              data-overlay-close
+            >
+              Mostra risultati
+            </button>
+          </footer>
+        </div>
+      </div>
+
+      <section class="products" aria-labelledby="products-title">
+        <aside
+          class="promo-banner relative mb-5 overflow-hidden rounded-2xl border border-indigo-500/30 bg-gradient-to-r from-indigo-600 via-indigo-700 to-violet-600 px-4 py-3 text-white shadow-sm shadow-indigo-500/20 sm:px-5 dark:border-indigo-800/40 dark:from-slate-900 dark:via-indigo-950/80 dark:to-indigo-900/60 dark:shadow-none"
+          aria-label="Promozione"
+          data-i18n-aria-label="promo.label"
+        >
+          <div class="promo-banner__glow pointer-events-none absolute -right-8 -top-10 h-28 w-28 rounded-full bg-violet-400/30 blur-2xl dark:bg-violet-500/20" aria-hidden="true"></div>
+          <div class="promo-banner__content relative flex items-center gap-3">
+            <span class="promo-banner__icon flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white/15 ring-1 ring-white/20">
+              <svg class="h-5 w-5 shrink-0" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <path d="M3 7h11v9H3zM14 10h4l3 3v3h-7" stroke-linejoin="round" />
+                <circle cx="7" cy="17.5" r="1.8" />
+                <circle cx="17" cy="17.5" r="1.8" />
+              </svg>
+            </span>
+            <p class="promo-banner__text flex min-w-0 flex-col text-sm sm:flex-row sm:items-center sm:gap-2 md:flex-col md:items-start md:gap-0 lg:flex-row lg:items-center lg:gap-2">
+              <strong class="font-bold tracking-tight" data-i18n="promo.title">Nuovi Arrivi di Stagione</strong>
+              <span class="hidden text-white/40 sm:inline md:hidden lg:inline" aria-hidden="true">—</span>
+              <span class="text-white/80" data-i18n="promo.subtitle">Spedizione gratuita su tutti gli ordini</span>
+            </p>
+          </div>
+        </aside>
+
+        <div class="mb-5 flex flex-wrap items-center justify-between gap-3">
+          <h1 id="products-title" class="text-2xl font-bold text-slate-900 dark:text-slate-100" data-i18n="catalog.title">Catalogo</h1>
+          <button
+            id="filter-toggle"
+            type="button"
+            class="filter-toggle flex items-center gap-2 rounded-full border border-slate-200 bg-white py-1.5 pl-3 pr-2 text-sm font-medium text-slate-700 transition hover:border-brand hover:text-brand focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/30 md:hidden dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:border-brand-bright dark:hover:text-brand-bright"
+            aria-label="Filtri"
+            aria-controls="filter-drawer"
+            aria-expanded="false"
+          >
+            <svg class="h-4 w-4 shrink-0" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M20 18h0" stroke-linecap="round" />
+              <circle cx="16" cy="6" r="2" />
+              <circle cx="10" cy="12" r="2" />
+              <circle cx="18" cy="18" r="2" />
+            </svg>
+            <span data-i18n="filters.title">Filtri</span>
+            <span
+              id="filter-toggle-count"
+              class="flex h-5 min-w-5 items-center justify-center rounded-full bg-brand px-1 text-xs font-bold text-white data-[count='0']:hidden"
+              data-count="0"
+              aria-hidden="true"
+            >0</span>
+          </button>
+          <div class="flex w-full items-center justify-between gap-3 md:w-auto md:justify-start">
+            <p id="products-count" class="text-sm text-slate-500 dark:text-slate-400" aria-live="polite"></p>
+            <label for="sort-select" class="sr-only" data-i18n="catalog.sortLabel">Ordina per</label>
+            <select
+              id="sort-select"
+              class="rounded-full border border-slate-200 bg-white py-1.5 pl-3 pr-8 text-sm text-slate-700 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30 disabled:opacity-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
+              disabled
+            >
+              <option value="default" data-i18n="catalog.sortDefault">Più popolari</option>
+              <option value="price-asc" data-i18n="catalog.sortPriceAsc">Prezzo: crescente</option>
+              <option value="price-desc" data-i18n="catalog.sortPriceDesc">Prezzo: decrescente</option>
+              <option value="rating-desc" data-i18n="catalog.sortRatingDesc">Migliori recensioni</option>
+            </select>
+          </div>
+        </div>
+
+        <div id="product-grid" class="products__grid grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3"></div>
+      </section>
+    </main>
+
+    <footer class="site-footer mt-20 border-t border-slate-200 bg-slate-50 py-10 text-slate-500 transition-colors duration-300 dark:border-slate-800/80 dark:bg-slate-950 dark:text-slate-400">
+      <div class="site-footer__inner mx-auto flex max-w-7xl flex-col items-center gap-6 px-4 text-center sm:px-6 md:flex-row md:items-center md:justify-between md:text-left lg:px-8">
+        <div class="site-footer__brand flex flex-col items-center gap-1.5 md:items-start">
+          <a href="/" class="flex items-center gap-2 text-lg font-extrabold tracking-tight text-slate-900 dark:text-slate-100">
+            <svg class="h-6 w-6 shrink-0" width="24" height="24" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+              <defs>
+                <linearGradient id="footer-logo-gradient" x1="6" y1="4" x2="26" y2="29" gradientUnits="userSpaceOnUse">
+                  <stop offset="0" style="stop-color: rgb(var(--color-brand-bright))" />
+                  <stop offset="0.55" style="stop-color: rgb(var(--color-brand))" />
+                  <stop offset="1" style="stop-color: rgb(var(--color-brand-dark))" />
+                </linearGradient>
+              </defs>
+              <path d="M11.5 11V9a4.5 4.5 0 0 1 9 0v2" stroke="url(#footer-logo-gradient)" stroke-width="2.6" stroke-linecap="round" />
+              <path d="M6.2 10.5h19.6l-1.5 15a3.2 3.2 0 0 1-3.2 2.9H10.9a3.2 3.2 0 0 1-3.2-2.9l-1.5-15z" fill="url(#footer-logo-gradient)" />
+              <path d="M16 14.8l1.35 3.35 3.35 1.35-3.35 1.35L16 24.2l-1.35-3.35-3.35-1.35 3.35-1.35L16 14.8z" fill="#fff" />
+            </svg>
+            <span class="leading-none">Nova<span class="text-brand dark:text-brand-bright">Store</span></span>
+          </a>
+          <p class="text-sm" data-i18n="footer.tagline">Essenziali moderni, consegnati senza pensieri.</p>
+        </div>
+
+        <nav class="site-footer__links" aria-label="Link utili" data-i18n-aria-label="footer.navLabel">
+          <ul class="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-sm">
+            <li><a href="#shipping" class="transition-colors hover:text-indigo-600 dark:hover:text-indigo-400" data-demo-link data-i18n="footer.shipping">Spedizioni</a></li>
+            <li><a href="#faq" class="transition-colors hover:text-indigo-600 dark:hover:text-indigo-400" data-demo-link>FAQ</a></li>
+            <li><a href="#privacy" class="transition-colors hover:text-indigo-600 dark:hover:text-indigo-400" data-demo-link>Privacy Policy</a></li>
+          </ul>
+        </nav>
+
+        <p class="site-footer__credits max-w-sm text-xs leading-relaxed md:text-right">
+          © <span id="footer-year">2026</span> NovaStore.
+          <span data-i18n="footer.credits">Realizzato con Vanilla JS e Tailwind CSS da</span>
+          <a
+            href="https://github.com/zarradevp"
+            class="font-medium text-slate-700 transition-colors hover:text-indigo-600 dark:text-slate-300 dark:hover:text-indigo-400"
+            target="_blank"
+            rel="noopener noreferrer"
+          >zarradevp</a>.
+        </p>
+      </div>
+    </footer>
+
+    <div id="cart-drawer" class="cart-drawer group pointer-events-none fixed inset-0 z-50 data-[state=open]:pointer-events-auto" data-state="closed" hidden inert>
+      <div class="cart-drawer__backdrop absolute inset-0 bg-slate-900/50 opacity-0 backdrop-blur-sm transition-opacity duration-300 group-data-[state=open]:opacity-100 dark:bg-black/60" data-overlay-close></div>
+
+      <aside
+        class="cart-drawer__panel absolute inset-y-0 right-0 flex w-full max-w-md translate-x-full flex-col bg-white shadow-2xl transition-transform duration-300 ease-out group-data-[state=open]:translate-x-0 dark:bg-slate-900 dark:ring-1 dark:ring-slate-800"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="cart-drawer-title"
+      >
+        <header class="cart-drawer__header flex items-center justify-between border-b border-slate-200 px-5 py-4 dark:border-slate-800">
+          <h2 id="cart-drawer-title" class="text-lg font-bold text-slate-900 dark:text-slate-100" data-i18n="cart.title">Il tuo carrello</h2>
+          <button id="cart-close-button" type="button" class="rounded-full p-2 text-slate-500 transition hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100" aria-label="Chiudi carrello" data-i18n-aria-label="cart.close" data-overlay-close>
+            <svg class="h-5 w-5 shrink-0" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <path d="M6 6l12 12M18 6 6 18" stroke-linecap="round" />
+            </svg>
+          </button>
+        </header>
+
+        <div id="cart-items" class="cart-drawer__body flex-1 overflow-y-auto px-5"></div>
+
+        <footer id="cart-footer" class="cart-drawer__footer border-t border-slate-200 bg-white px-5 py-4 dark:border-slate-800 dark:bg-slate-900">
+          <div class="mb-4 flex items-baseline justify-between">
+            <span class="text-sm text-slate-500 dark:text-slate-400" data-i18n="cart.total">Totale</span>
+            <span id="cart-total" class="text-2xl font-bold text-slate-900 dark:text-slate-100">0,00 €</span>
+          </div>
+          <button id="checkout-button" type="button" class="w-full rounded-full bg-brand py-3 font-semibold text-white transition hover:bg-brand-dark focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/40" data-i18n="cart.checkout">
+            Procedi al Checkout
+          </button>
+        </footer>
+      </aside>
+    </div>
+
+    <div id="quick-view" class="quick-view group pointer-events-none fixed inset-0 z-50 items-center justify-center p-4 data-[state=open]:pointer-events-auto" data-state="closed" hidden inert>
+      <div class="quick-view__backdrop absolute inset-0 bg-slate-900/60 opacity-0 backdrop-blur-sm transition-opacity duration-300 group-data-[state=open]:opacity-100 dark:bg-black/70" data-overlay-close></div>
+
+      <div
+        class="quick-view__panel relative max-h-[90vh] w-full max-w-4xl scale-95 overflow-y-auto rounded-3xl bg-white opacity-0 shadow-2xl transition duration-300 ease-out group-data-[state=open]:scale-100 group-data-[state=open]:opacity-100 dark:bg-slate-900 dark:ring-1 dark:ring-slate-800"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="quick-view-title"
+      >
+        <button
+          id="quick-view-close-button"
+          type="button"
+          class="absolute right-4 top-4 z-10 rounded-full bg-white/90 p-2 text-slate-500 shadow-sm transition hover:bg-slate-100 hover:text-slate-900 dark:bg-slate-800/90 dark:text-slate-400 dark:hover:bg-slate-700 dark:hover:text-slate-100"
+          aria-label="Chiudi dettaglio prodotto"
+          data-i18n-aria-label="quickView.close"
+          data-overlay-close
+        >
+          <svg class="h-5 w-5 shrink-0" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <path d="M6 6l12 12M18 6 6 18" stroke-linecap="round" />
+          </svg>
+        </button>
+
+        <div id="quick-view-content"></div>
+      </div>
+    </div>
+
+    <div id="toast-region" class="toast-region pointer-events-none fixed bottom-5 right-5 z-50 flex flex-col items-end gap-3" role="status" aria-live="polite"></div>
+
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
